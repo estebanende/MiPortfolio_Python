@@ -4,19 +4,41 @@ pero por ahora solo vamos a realiza el back
 '''
 from tkinter import Tk as tk
 from tkinter import *
+from tkinter import ttk as ttk
 from GUI.NewWindowsEvent import *
+from functools import partial
+from GUI.ModifyWindowsEvent import *
 from RunProccess import *
+from GUI.SearchFileWindows import *
+
+
 class mainWindows:
     def __init__(self) :
         super().__init__()
        
         self.ventana=tk()
         self.inicio=0
-       
+        #vamos a crear un menu simple que nos permita importar datos mediante CSV 
+        self.menu=Menu()
+        #Creamos un subMenu para que se contenga el Menu principal
+        self.menuUtilidades=Menu(self.menu,tearoff=False)
+        #para Añadirlo tenemos que hacer cascade
+        self.menu.add_cascade(menu=self.menuUtilidades, label="Utilidades")
+        #Añadimos el menu a la ventana
+        self.ventana.config(menu=self.menu)
+        #añdir funcionalidaes a menu
+        self.menuUtilidades.add_command(label="Importar Contactos",
+        accelerator="Ctrl+N",
+        command=self.archivo_nuevo_presionado)
+        self.menuUtilidades.add_command(label="Refrescar",
+        accelerator="F5",
+        command=partial(self.MosrtrarregisotrsGRID,""))
+       #blindemaso los comandos y las teclas para realizar las acciones que quereemos en este caso refrescar la pagina
+        self.ventana.bind("<F5>",self.MosrtrarregisotrsGRID)
+        
         self.ventana.title("Aplicación")
         self.gridTable=Frame(self.ventana,height=500,width=900 )
         self.gridTable.pack()
-        #self.GridtableBody=Frame(self.gridTable,height=500,width=1000)
         self.LabelMail=Label(self.gridTable,text="Buscador")
         self.LabelMail.grid(row=0,column=1)
         self.buscadorMail=Entry(self.gridTable,textvariable="Introcue un Mail para buscarlo")
@@ -44,39 +66,36 @@ class mainWindows:
         self.boton_insertar = Button(self.ventana, text="Insertar", command=self.registryEvent)
         self.boton_insertar.pack()
         
-        self.boton_modificar = Button(self.ventana, text="Modificar", command=self.ModifyEvent)
-        self.boton_modificar.pack()
         
-        self.boton_eliminar = Button(self.ventana, text="Eliminar", command=self.deleteEvent)
-        self.boton_eliminar.pack()
         self.ventana.mainloop()
         
         pass
         
     def registryEvent(self):
         self.ventana.update()
-        print(self.ventana.winfo_children())
+        #print(self.ventana.winfo_children())
         '''
         esta forma de desactivar los componetes no es valia ya que los fgrame no se pueden desactivar 
          for widget in self.ventana.winfo_children():
             print(widget)
             widget.config(state=DISABLED)
        '''
-        self.boton_insertar.config(state=DISABLED)
-        self.boton_modificar.config(state=DISABLED)
-        self.boton_eliminar.config(state=DISABLED)
+
        # self.buscadorMail.config(state=DISABLED)
-        
         WindowsNewEvent(self.ventana)
+       
     
         pass
     
-    def ModifyEvent(self):
-        print("entro en modificar")
+    def ModifyEvent(self,idMail):
+        modifyWindows(self.ventana,idMail)
+        
         pass
     
-    def deleteEvent(self):
+    def deleteEvent(self,idmail):
         print("Borramos evento")
+        BorrarRegistro(idmail)
+        self.MosrtrarregisotrsGRID("")
         pass
     def MosrtrarregisotrsGRID(self,event):
         
@@ -85,22 +104,32 @@ class mainWindows:
         self.LimpiarGrid()
         columna=1
         fila=3
+        indexcolumn=2
+        
         for row in resultado:
             fila=fila+1
             columna=1
-            print(row)
+         
             for columnas in row:
                 
                 columLabel=Entry(self.gridTable,fg="red",border=1)
                 columLabel.insert(0,str(columnas))
                 columLabel.grid(row=fila,column=columna)
                 columna=columna+1
+            
+            
+            BotonModificar=ttk.Button(self.gridTable,text="Modificar",command=partial(self.ModifyEvent,row[indexcolumn]))
+            BotonModificar.grid(row=fila,column=columna)
+            columna=columna+1
+            BotonEliminar=ttk.Button(self.gridTable,text="Eliminar",command=partial(self.deleteEvent,row[indexcolumn]))
+            BotonEliminar.grid(row=fila,column=columna)
+            
         pass
     def LimpiarGrid(self):
     # Obtén todos los widgets dentro del gridTable
         for widget in self.gridTable.winfo_children():
-            print(widget)
             if widget not in [self.buscadorMail, self.LabelMail, self.headerName,self.headerDescriprion,self.headerEmail] and not isinstance(widget, Frame):
                 widget.destroy()
     
-    
+    def archivo_nuevo_presionado(self):
+        buscador()
