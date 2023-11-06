@@ -2,12 +2,13 @@ from tkinter import Tk as tk
 from tkinter import *
 from tkinter import  Toplevel, Label, Entry, Text, Button
 from conexion.conectar import  *
-
+from RunProccess import *
 
 class WindowsNewEvent():
     def __init__(self,ventanaPrincipal):
         
         self.ventanMain=ventanaPrincipal
+        BloquarCampos(self.ventanMain)
         print(self.ventanMain)
         self.ventana = tk()
         #self.ventana=Toplevel(ventanaPrincipal)
@@ -27,6 +28,7 @@ class WindowsNewEvent():
         
         self.ButtonSave=Button(self.ventana,text="Guardar",command=self.Guardar )
         self.ButtonSave.pack()
+        self.ventana.protocol("WM_DELETE_WINDOW", self.eventcerrar)
         self.ventana.mainloop()
         
 
@@ -43,23 +45,15 @@ class WindowsNewEvent():
             if cursor.execute(sql,parametros):
                 print("ejecutado de forma correcta ")
                 conex.commit()
+                
               
                 self.ventana.destroy()
+                ActivarCampos(self.ventanMain)
             
             conex.commit()
             conex.close()
                 
-                    
-                  
-        
-        for widget in self.ventanMain.winfo_children():
-               
-                if not   isinstance(widget, Frame):
-                    widget.config(state=ACTIVE)
-       
-        
-        
-        
+
     def chequearParametros(self,parametros):
         retorno=True
         #1º chequo se comprueba si de los campos son blancos
@@ -82,3 +76,7 @@ class WindowsNewEvent():
         
         
         return retorno
+    def eventcerrar(self):
+        self.ventana.destroy()
+        ActivarCampos(self.ventanMain)
+        print("se ha cerrado la ventana")
